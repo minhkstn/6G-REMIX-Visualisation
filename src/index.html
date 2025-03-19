@@ -1,0 +1,190 @@
+<!-------------------------------------------------------------------------------
+ * Copyright (c) 2023, Fraunhofer-Gesellschaft zur Förderung der angewandten Forschung e.V.
+ * All rights reserved.
+
+ * For more information please contact:
+ * Fraunhofer FOKUS
+ * Kaiserin-Augusta-Allee 31
+ * 10589 Berlin, Germany
+ * https://www.fokus.fraunhofer.de/go/fame
+ * famecontact@fokus.fraunhofer.de
+ * -----------------------------------------------------------------------------
+ -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Energy and Load Plotter</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <h1>Energy and Load Plotter</h1>
+    <div class="chart-row">
+        <canvas id="loadChart" width="600" height="300"></canvas>
+        <canvas id="currentChart" width="600" height="300"></canvas>
+    </div>
+    <div class="chart-row">
+    <canvas id="energyChart" width="600" height="300"></canvas>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const url = 'http://localhost:3000/api/netio.json'; // Update this to your proxy server URL
+
+            const loadCtx = document.getElementById('loadChart').getContext('2d');
+            const currentCtx = document.getElementById('currentChart').getContext('2d');
+            const energyCtx = document.getElementById('energyChart').getContext('2d');
+
+            const loadChart = new Chart(loadCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: []
+                },
+                options: {
+                    responsive: false,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Load (W)'
+                        }
+                    }
+                }
+            });
+
+            const currentChart = new Chart(currentCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: []
+                },
+                options: {
+                    responsive: false,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Current (mA)'
+                        }
+                    }
+                }
+            });
+
+            const energyChart = new Chart(energyCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: []
+                },
+                options: {
+                    responsive: false,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Energy (kWh)'
+                        }
+                    }
+                }
+            });
+
+            const dataHistory = {
+                load: [],
+                current: [],
+                energy: []
+            };
+
+            function fetchData() {
+                fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    const outputs = data.Outputs;
+                    const timestamp = new Date().toLocaleTimeString();
+
+                    if (dataHistory.load.length >= 60) {
+                        dataHistory.load.shift();
+                        dataHistory.current.shift();
+                        dataHistory.energy.shift();
+                    }
+
+                    dataHistory.load.push({
+                        timestamp: timestamp,
+                        values: outputs.map(output => output.Load)
+                    });
+
+                    dataHistory.current.push({
+                        timestamp: timestamp,
+                        values: outputs.map(output => output.Current)
+                    });
+
+                    dataHistory.energy.push({
+                        timestamp: timestamp,
+                        values: outputs.map(output => output.Energy / 1000)
+                    });
+
+                    appendDataToChart(loadChart, dataHistory.load, 'Load');
+                    appendDataToChart(currentChart, dataHistory.current, 'Current');
+                    appendDataToChart(energyChart, dataHistory.energy, 'Energy (kWh)');
+                })
+                .catch(error => console.error('Error fetching data:', error));
+            }
+
+            function appendDataToChart(chart, dataHistory, label) {
+                const latestData = dataHistory[dataHistory.length - 1];
+                chart.data.labels.push(latestData.timestamp);
+                if (chart.data.labels.length > 60) {
+                    chart.data.labels.shift();
+                }
+
+                latestData.values.forEach((value, index) => {
+                    if (!chart.data.datasets[index]) {
+                        chart.data.datasets[index] = {
+                            label: `Output ${index + 1}`,
+                            data: [],
+                            fill: false,
+                            borderColor: getRandomColor(),
+                            tension: 0.1
+                        };
+                    }
+                    chart.data.datasets[index].data.push(value);
+                    if (chart.data.datasets[index].data.length > 60) {
+                        chart.data.datasets[index].data.shift();
+                    }
+                });
+
+                chart.update();
+            }
+
+            function getRandomColor() {
+                const letters = '0123456789ABCDEF';
+                let color = '#';
+                for (let i = 0; i < 6; i++) {
+                    color += letters[Math.floor(Math.random() * 16)];
+                }
+                return color;
+            }
+
+            fetchData();
+            setInterval(fetchData, 1000); // Fetch new data every 1 second
+        });
+    </script>
+</body>
+</html>
