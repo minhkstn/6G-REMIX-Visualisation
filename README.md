@@ -61,4 +61,4 @@ This project may use the following dependencies (check `package.json` for the co
 
 ## License
 
-This project is licensed under the MIT License. See the LICENSE file for more details.
+This project is licensed under the Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International Public License License. See the LICENSE file for more details.
