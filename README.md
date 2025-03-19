@@ -11,6 +11,7 @@ visualisation
 │   ├── app.js           # JavaScript code for fetching and processing data
 │   └── styles.css       # CSS styles for the web application
 ├── package.json         # npm configuration file
+├── LICENSE.md         # npm configuration file
 └── README.md            # Project documentation
 ```
 
@@ -20,7 +21,7 @@ To set up and run the application, follow these steps:
 
 1. **Clone the repository:**
    ```
-   git clone <repository-url>
+   git clone https://github.com/minhkstn/6G-REMIX-Visualisation.git
    cd visualisation
    ```
 
