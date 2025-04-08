@@ -2,6 +2,9 @@
 
 This project is a web application that visualizes energy and load data from a specified JSON endpoint. It fetches data from a PowerPDU device and displays the energy consumption and load for four outputs in a graphical format.
 
+## Overview
+This repository contains the work supported by the [6G-REMIX Open Call](https://6g-xr.eu/open-calls/oc2-results/) of the [6G-XR](https://6g-xr.eu) project.
+
 ## Project Structure
 
 ```
